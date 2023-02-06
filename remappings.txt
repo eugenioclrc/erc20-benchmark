@@ -1,0 +1,12 @@
+ds-test/=lib/solmate/lib/ds-test/src/
+forge-std/=lib/forge-std/src/
+@openzeppelin/=lib/openzeppelin-contracts/
+solmate/=lib/solmate/src/
+ds-test/=lib/solmate/lib/ds-test/src/
+forge-std/=lib/forge-std/src/
+foundry-huff/=lib/foundry-huff/src/
+huffmate/=lib/huffmate/src/
+openzeppelin-contracts/=lib/openzeppelin-contracts/
+solidity-stringutils/=lib/foundry-huff/lib/solidity-stringutils/
+solmate/=lib/solmate/src/
+stringutils/=lib/foundry-huff/lib/solidity-stringutils/

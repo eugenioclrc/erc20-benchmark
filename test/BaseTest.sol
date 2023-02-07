@@ -21,7 +21,10 @@ abstract contract BaseTest is Test {
     }
 */
     function testMint() public {
+        uint256 before = gasleft();
         token.mint(address(0xBEEF), 1e18);
+        console.log(before-gasleft());
+
 
         assertEq(token.totalSupply(), 1e18);
         assertEq(token.balanceOf(address(0xBEEF)), 1e18);
@@ -29,22 +32,28 @@ abstract contract BaseTest is Test {
 
     function testBurn() public {
         token.mint(address(0xBEEF), 1e18);
+        uint256 before = gasleft();
         token.burn(address(0xBEEF), 0.9e18);
+        console.log(before-gasleft());
 
         assertEq(token.totalSupply(), 1e18 - 0.9e18);
         assertEq(token.balanceOf(address(0xBEEF)), 0.1e18);
     }
 
     function testApprove() public {
+        uint256 before = gasleft();
         assertTrue(token.approve(address(0xBEEF), 1e18));
-
+        console.log(before-gasleft());
+        
         assertEq(token.allowance(address(this), address(0xBEEF)), 1e18);
     }
 
     function testTransfer() public {
         token.mint(address(this), 1e18);
-
+        
+        uint256 before = gasleft();
         assertTrue(token.transfer(address(0xBEEF), 1e18));
+        console.log(before-gasleft());
         assertEq(token.totalSupply(), 1e18);
 
         assertEq(token.balanceOf(address(this)), 0);
@@ -59,7 +68,9 @@ abstract contract BaseTest is Test {
         vm.prank(from);
         token.approve(address(this), 1e18);
 
+        uint256 before = gasleft();
         assertTrue(token.transferFrom(from, address(0xBEEF), 1e18));
+        console.log(before-gasleft());
         assertEq(token.totalSupply(), 1e18);
 
         assertEq(token.allowance(from, address(this)), 0);
@@ -76,7 +87,9 @@ abstract contract BaseTest is Test {
         vm.prank(from);
         token.approve(address(this), type(uint256).max);
 
+        uint256 before = gasleft();
         assertTrue(token.transferFrom(from, address(0xBEEF), 1e18));
+        console.log(before-gasleft());
         assertEq(token.totalSupply(), 1e18);
 
         assertEq(token.allowance(from, address(this)), type(uint256).max);
@@ -100,7 +113,9 @@ abstract contract BaseTest is Test {
             )
         );
 
+        uint256 before = gasleft();
         token.permit(owner, address(0xCAFE), 1e18, block.timestamp, v, r, s);
+        console.log(before-gasleft());
 
         assertEq(token.allowance(owner, address(0xCAFE)), 1e18);
         assertEq(token.nonces(owner), 1);
@@ -210,6 +225,11 @@ abstract contract BaseTest is Test {
 
 
     function testMint(address from, uint256 amount) public {
+        if(from == address(0)) {
+            vm.expectRevert();
+            token.mint(from, amount);
+            return;
+        }
         token.mint(from, amount);
 
         assertEq(token.totalSupply(), amount);
@@ -222,7 +242,8 @@ abstract contract BaseTest is Test {
         uint256 burnAmount
     ) public {
         burnAmount = bound(burnAmount, 0, mintAmount);
-
+        vm.assume(from != address(0));
+        
         token.mint(from, mintAmount);
         token.burn(from, burnAmount);
 
@@ -231,6 +252,11 @@ abstract contract BaseTest is Test {
     }
 
     function testApprove(address to, uint256 amount) public {
+        if(to == address(0)) {
+            vm.expectRevert();
+            token.approve(to, amount);
+            return;
+        }
         assertTrue(token.approve(to, amount));
 
         assertEq(token.allowance(address(this), to), amount);
@@ -239,6 +265,12 @@ abstract contract BaseTest is Test {
     function testTransfer(address from, uint256 amount) public {
         token.mint(address(this), amount);
 
+        if(from == address(0)) {
+            vm.expectRevert();
+            token.transfer(from, amount);
+            return;
+        }
+        
         assertTrue(token.transfer(from, amount));
         assertEq(token.totalSupply(), amount);
 
@@ -255,6 +287,7 @@ abstract contract BaseTest is Test {
         uint256 approval,
         uint256 amount
     ) public {
+        
         amount = bound(amount, 0, approval);
 
         address from = address(0xABCD);
@@ -264,6 +297,12 @@ abstract contract BaseTest is Test {
         vm.prank(from);
         token.approve(address(this), approval);
 
+        if(to == address(0)){
+            vm.expectRevert();
+            token.transferFrom(from, to, amount);
+            return;
+        }
+        
         assertTrue(token.transferFrom(from, to, amount));
         assertEq(token.totalSupply(), amount);
 
